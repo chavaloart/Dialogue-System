@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 public class DialogueManager : MonoBehaviour {
@@ -10,10 +11,15 @@ public class DialogueManager : MonoBehaviour {
 
 	public Animator animator;
 
+	private Queue<string> names;
 	private Queue<string> sentences;
+    private UnityEvent[] events;
+
+    private int dialogueIndex;
 
 	// Use this for initialization
 	void Start () {
+        names = new Queue<string>();
 		sentences = new Queue<string>();
 	}
 
@@ -21,9 +27,15 @@ public class DialogueManager : MonoBehaviour {
 	{
 		animator.SetBool("IsOpen", true);
 
-		nameText.text = dialogue.name;
+        names.Clear();
 
-		sentences.Clear();
+        foreach (string name in dialogue.names)
+        {
+            names.Enqueue(name);
+        }
+
+
+        sentences.Clear();
 
 		foreach (string sentence in dialogue.sentences)
 		{
@@ -41,9 +53,14 @@ public class DialogueManager : MonoBehaviour {
 			return;
 		}
 
+        string name = names.Dequeue();
+        nameText.text = name;
+
 		string sentence = sentences.Dequeue();
 		StopAllCoroutines();
 		StartCoroutine(TypeSentence(sentence));
+
+        CheckEvents();
 	}
 
 	IEnumerator TypeSentence (string sentence)
@@ -60,5 +77,15 @@ public class DialogueManager : MonoBehaviour {
 	{
 		animator.SetBool("IsOpen", false);
 	}
+
+    void CheckEvents()
+    {
+        if(events[dialogueIndex] != null)
+        {
+            events[dialogueIndex].Invoke();
+        }
+
+        dialogueIndex++;
+    }
 
 }
